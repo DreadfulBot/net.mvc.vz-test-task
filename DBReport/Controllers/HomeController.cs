@@ -11,12 +11,25 @@ namespace DBReport.Controllers
 {
     public class HomeController : Controller
     {
+        List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
+
         // GET: /<controller>/
         public IActionResult Index()
-        {
-            List<ReportInfo> Report = new List<ReportInfo>();
+        {            
+            ViewBag.Report = Report;
+            return View();
+        }
 
-            return View(Report);
+        public IActionResult What(int a)
+        {
+            ViewBag.Days = a;
+            return View(ViewBag.Days);
+        }
+
+        [HttpPost]
+        public RedirectToActionResult Index(int ReportDate)
+        {
+            return RedirectToAction("What", "Home", new { a=ReportDate } );
         }
     }
 }
