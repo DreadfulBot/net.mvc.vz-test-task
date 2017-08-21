@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Data.SqlClient;
+
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -22,6 +24,13 @@ namespace DBReport.Controllers
 
         public IActionResult What(int a)
         {
+            string connectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True";
+            //Create a SQL Connection
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+            }
+
             ViewBag.Days = a;
             return View(ViewBag.Days);
         }

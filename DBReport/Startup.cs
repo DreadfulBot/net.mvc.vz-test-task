@@ -23,7 +23,6 @@ namespace DBReport
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseMvcWithDefaultRoute();
-            
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Something went wrong");
