@@ -9,14 +9,23 @@
     <title></title>
 </head>
 <body>
-    @{ 
+    
+    @*{ 
         DateTime d = DateTime.Today;
-    }
-   @* @d.CompareTo(new DateTime(2012, 5, 13))*@
+    }*@
+   @*d.CompareTo(new DateTime(2012, 5, 13))*@
+    @*
     @d.Date.ToString("d")
     <br />
     @d.AddDays(-1*ViewBag.Days)
     <br />
-    @ViewBag.Days
+    @ViewBag.Days<br /><br /><hr />
+    *@
+    
+    @foreach(var b in ViewBag.Data)
+    {
+        @b 
+        <br />
+    }
 </body>
 </html>

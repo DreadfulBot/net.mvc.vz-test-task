@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
 
 
+
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace DBReport.Controllers
@@ -18,20 +19,11 @@ namespace DBReport.Controllers
         // GET: /<controller>/
         public IActionResult Index()
         {            
-            ViewBag.Report = Report;
             return View();
         }
 
         public IActionResult What()
-        {
-            //Строка соединения
-            string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=Northwind;Integrated Security=True";
-            //Соединение с базой данных
-            using (SqlConnection Northwind = new SqlConnection(connectionString))
-            {
-                Northwind.Open();
-            }
-            
+        {           
             return View();
         }
 
@@ -39,7 +31,30 @@ namespace DBReport.Controllers
         [HttpPost]
         public IActionResult Index(int ReportDate)
         {
-            ViewBag.Days = ReportDate;
+            //Строка соединения
+            string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Database=Northwind;Integrated Security=True";//or Initial Catalog
+            //SQL-запрос
+            string CommandText = "SELECT TOP 5 Name FROM Product";
+
+            //Соединение с базой данных
+            using (SqlConnection Northwind = new SqlConnection(connectionString))
+            {
+                Northwind.Open();
+                SqlCommand ReportRequest = new SqlCommand(CommandText, Northwind);
+                SqlDataReader reader = ReportRequest.ExecuteReader();
+
+                if (reader.HasRows)//если есть данные
+                {
+
+                    List<string> strings = new List<string>();
+                    while (reader.Read())
+                    {
+                        strings.Add(reader.GetString(0));
+                    }
+                    ViewBag.Data = strings;
+                }
+            }
+
             return View("What");
         }
     }
