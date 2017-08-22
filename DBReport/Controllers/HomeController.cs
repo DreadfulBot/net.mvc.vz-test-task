@@ -22,23 +22,25 @@ namespace DBReport.Controllers
             return View();
         }
 
-        public IActionResult What(int a)
+        public IActionResult What()
         {
-            string connectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True";
-            //Create a SQL Connection
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            //Строка соединения
+            string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=Northwind;Integrated Security=True";
+            //Соединение с базой данных
+            using (SqlConnection Northwind = new SqlConnection(connectionString))
             {
-                connection.Open();
+                Northwind.Open();
             }
-
-            ViewBag.Days = a;
-            return View(ViewBag.Days);
+            
+            return View();
         }
 
+        //ПРинимает интересующее количество дней
         [HttpPost]
-        public RedirectToActionResult Index(int ReportDate)
+        public IActionResult Index(int ReportDate)
         {
-            return RedirectToAction("What", "Home", new { a=ReportDate } );
+            ViewBag.Days = ReportDate;
+            return View("What");
         }
     }
 }
