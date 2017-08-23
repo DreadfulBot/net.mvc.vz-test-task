@@ -18,11 +18,12 @@ namespace DBReport.Controllers
     public class HomeController : Controller
     {
         List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
-        private void CreatingExcel()
+        private string CreatingExcel()
         {
             //CreatingExcelFile
             // Create a spreadsheet document
-            SpreadsheetDocument excelDoc = SpreadsheetDocument.Create(@"./wwwroot/ExcelReportFromNorthwind.xlsx", SpreadsheetDocumentType.Workbook);
+            string filename = @"./wwwroot/ExcelReportFromNorthwind"+DateTime.Today.ToString("d")+".xlsx";
+            SpreadsheetDocument excelDoc = SpreadsheetDocument.Create(filename, SpreadsheetDocumentType.Workbook);
 
             // Add a WorkbookPart to the document.
             WorkbookPart workbookPartNumberOne = excelDoc.AddWorkbookPart();
@@ -45,7 +46,36 @@ namespace DBReport.Controllers
 
             excelDoc.Close();
             // Other code goes here.
+            return filename;
         }
+
+        //Editing Excel file
+        private void AddingDataToExcel(string filename)
+        {
+            using (SpreadsheetDocument currentDocument = SpreadsheetDocument.Open(filename, true))
+            {
+                // Retrieve a reference to the workbook part.
+                WorkbookPart wbPart = currentDocument.WorkbookPart;
+                // Find the first sheet and then use that Sheet object to retrieve a reference to the first worksheet.
+                Sheet firstsheet = wbPart.Workbook.Descendants<Sheet>().First();
+                // Retrieve a reference to the worksheet part.
+                WorksheetPart wsPart = (WorksheetPart)wbPart.GetPartById(firstsheet.Id);
+                //Документ пустой => существование строк не проверять
+                int currentvalue = 124;
+                Worksheet worksheet = wsPart.Worksheet;
+                SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+                Row row = new Row() { RowIndex = 1 };
+                Cell theCell = new Cell() { CellReference="A1", DataType=CellValues.Number, CellValue=new CellValue(currentvalue.ToString())};
+                row.Append(theCell);
+                sheetData.Append(row);
+
+                wsPart.Worksheet.Save();
+            }
+        }
+
+
+
+
 
         // GET: /<controller>/
         public IActionResult Index()
@@ -58,7 +88,8 @@ namespace DBReport.Controllers
 
         public IActionResult What()
         {
-            CreatingExcel();
+            string filename = CreatingExcel();
+            AddingDataToExcel(filename);
             return View();
         }
 
