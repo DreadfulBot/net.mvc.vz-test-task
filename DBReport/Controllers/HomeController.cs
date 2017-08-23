@@ -5,6 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 
 
@@ -15,6 +18,34 @@ namespace DBReport.Controllers
     public class HomeController : Controller
     {
         List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
+        private void CreatingExcel()
+        {
+            //CreatingExcelFile
+            // Create a spreadsheet document
+            SpreadsheetDocument excelDoc = SpreadsheetDocument.Create(@"./wwwroot/ExcelReportFromNorthwind.xlsx", SpreadsheetDocumentType.Workbook);
+
+            // Add a WorkbookPart to the document.
+            WorkbookPart workbookPartNumberOne = excelDoc.AddWorkbookPart();
+            workbookPartNumberOne.Workbook = new Workbook();
+
+            // Add a WorksheetPart to the WorkbookPart.
+            WorksheetPart worksheetPartNumberOne = workbookPartNumberOne.AddNewPart<WorksheetPart>();
+            worksheetPartNumberOne.Worksheet = new Worksheet(new SheetData());
+
+            // Add Sheets to the Workbook.
+            Sheets excelSheets = excelDoc.WorkbookPart.Workbook.AppendChild<Sheets>(new Sheets());
+
+            // Append a new worksheet and associate it with the workbook.
+            Sheet excelSheetNumberOne = new Sheet() { Id = excelDoc.WorkbookPart.GetIdOfPart(worksheetPartNumberOne), SheetId = 1, Name = "ReportResults" };
+            excelSheets.Append(excelSheetNumberOne);
+
+            workbookPartNumberOne.Workbook.Save();
+
+            excelDoc.Save();
+
+            excelDoc.Close();
+            // Other code goes here.
+        }
 
         // GET: /<controller>/
         public IActionResult Index()
@@ -22,10 +53,15 @@ namespace DBReport.Controllers
             return View();
         }
 
+        
+
+
         public IActionResult What()
-        {           
+        {
+            CreatingExcel();
             return View();
         }
+
 
         //ПРинимает интересующее количество дней
         [HttpPost]
