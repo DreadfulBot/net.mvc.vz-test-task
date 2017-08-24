@@ -19,7 +19,6 @@ namespace DBReport.Controllers
 {
     public class HomeController : Controller
     {
-        List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
         private string CreatingExcel()
         {
 
@@ -76,10 +75,11 @@ namespace DBReport.Controllers
             }
         }
 
+        //Let's work with emails
         private async void SendEmail(string address, string filename)
         {
             var emailMessage = new MimeMessage();
-
+            //Создание приложения
             emailMessage.From.Add(new MailboxAddress("Администрация сайта", "autoemail.Friar_s.web-proj@list.ru"));//адрес
             emailMessage.To.Add(new MailboxAddress("customer", address));
             emailMessage.Subject = "Запрошенная на Ваш адрес выборка из базы данных";
@@ -108,35 +108,13 @@ namespace DBReport.Controllers
 
         }
 
-
-
-        // GET: /<controller>/
-        public IActionResult Index()
-        {            
-            return View();
-        }
-
-        
-
-
-        public IActionResult What()
-        {
-            string filename = CreatingExcel();
-            string address = "Toha_Minin_555@list.ru";
-            AddingDataToExcel(filename);
-            SendEmail(address,filename);
-            return View();
-        }
-
-
-        //ПРинимает интересующее количество дней
-        [HttpPost]
-        public IActionResult Index(int ReportDate)
+        //SQL request
+        private void SQLRequest(DateTime starttime)
         {
             //Строка соединения
             string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Database=Northwind;Integrated Security=True";//or Initial Catalog
-            //SQL-запрос
-            string CommandText = "SELECT TOP 5 Name FROM Product";
+            //SQL-запрос         
+            string CommandText = "SELECT OrderID, OrderDate, CategoryID, Name, Quantity, OrderDetail.UnitPrice FROM Product, \"Order\", OrderDetail WHERE (\"Order\".ID=OrderDetail.OrderID) AND (OrderDetail.ProductID=Product.ID) AND (\"Order\".OrderDate>='" + starttime.Year + "." + starttime.Month + "." + starttime.Day + "')";
 
             //Соединение с базой данных
             using (SqlConnection Northwind = new SqlConnection(connectionString))
@@ -147,15 +125,56 @@ namespace DBReport.Controllers
 
                 if (reader.HasRows)//если есть данные
                 {
-
-                    List<string> strings = new List<string>();
+                    List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
+                    //List<string> strings = new List<string>();
                     while (reader.Read())
                     {
-                        strings.Add(reader.GetString(0));
+                        Report.Add(new ReportInfo()
+                        {
+                            ProductId=reader.GetInt32(0),
+                            Date=reader.GetDateTime(1),
+                            ProductType=reader.GetInt32(2),
+                            ProductName=reader.GetString(3),
+                            Quantity=reader.GetInt32(4),
+                            UnitPrice=reader.GetDecimal(5)
+                        }   );
+                        //strings.Add(reader.GetString(0));
                     }
-                    ViewBag.Data = strings;
+                    ViewBag.ReportData = Report;
                 }
             }
+
+        }
+
+
+
+        // GET: /<controller>/
+        public IActionResult Index()
+        {            
+            return View();
+        }
+        
+
+
+        public IActionResult What()
+        {
+            string filename = CreatingExcel();
+            AddingDataToExcel(filename);
+            return View();
+        }
+
+
+        //ПРинимает интересующее количество дней
+        [HttpPost]
+        public IActionResult Index(DateTime starttime, string email)
+        {
+            SQLRequest(starttime);
+
+            string filename = CreatingExcel();
+            AddingDataToExcel(filename);
+            SendEmail(email, filename);
+            System.IO.File.Delete(filename);
+          
 
             return View("What");
         }
