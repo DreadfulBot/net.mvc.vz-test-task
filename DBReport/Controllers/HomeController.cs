@@ -8,6 +8,8 @@ using System.Data.SqlClient;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 
 
@@ -20,6 +22,7 @@ namespace DBReport.Controllers
         List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
         private string CreatingExcel()
         {
+
             //CreatingExcelFile
             // Create a spreadsheet document
             string filename = @"./wwwroot/ExcelReportFromNorthwind"+DateTime.Today.ToString("d")+".xlsx";
@@ -73,7 +76,37 @@ namespace DBReport.Controllers
             }
         }
 
+        private async void SendEmail(string address, string filename)
+        {
+            var emailMessage = new MimeMessage();
 
+            emailMessage.From.Add(new MailboxAddress("Администрация сайта", "autoemail.Friar_s.web-proj@list.ru"));//адрес
+            emailMessage.To.Add(new MailboxAddress("customer", address));
+            emailMessage.Subject = "Запрошенная на Ваш адрес выборка из базы данных";
+
+            var builder = new BodyBuilder();
+
+            // Set the plain-text version of the message text
+            builder.TextBody = @"Данные находятся в прикреплённом Excel файле.";
+            //builder.HtmlBody;
+
+            // We may also want to attach something
+            builder.Attachments.Add(filename);
+
+            // Now we just need to set the message body and we're done
+            emailMessage.Body = builder.ToMessageBody();
+
+            //Подключение к почте и отправка сообщения
+            using (var client = new SmtpClient())
+            {
+                await client.ConnectAsync("smtp.mail.ru", 25, false);
+                await client.AuthenticateAsync("autoemail.Friar_s.web-proj@list.ru", "2714Qr55z`");
+                await client.SendAsync(emailMessage);
+
+                await client.DisconnectAsync(true);
+            }
+
+        }
 
 
 
@@ -89,7 +122,9 @@ namespace DBReport.Controllers
         public IActionResult What()
         {
             string filename = CreatingExcel();
+            string address = "Toha_Minin_555@list.ru";
             AddingDataToExcel(filename);
+            SendEmail(address,filename);
             return View();
         }
 
