@@ -168,6 +168,7 @@ namespace DBReport.Controllers
         [HttpPost]
         public IActionResult Index(DateTime starttime, string email)
         {
+            DateTime start = new DateTime(1996, 07, 04);
             SQLRequest(starttime);
 
             string filename = CreatingExcel();

@@ -7,11 +7,23 @@
 @{
     Layout = null;
 }
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width-device-width" />
     <title></title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+  $( function() {
+      $("#datepicker").datepicker({
+          dateFormat: "dd-mm-yy"
+      });
+  } );
+    </script>
 </head>
 <body>
     @*<form method="post" class="form-horizontal" role="form">
@@ -35,18 +47,16 @@
         </div>
     </form>*@
     
-    
     <form method="post">
         <h4>Введите интересующую Вас дату (04.07.1996 - 06.05.1998) и Ваш электронный адрес.</h4>
         <label>Дата:</label><br />
-        <input type="datetime" required name="starttime" /> <br /><br />
+        <input type="text" id="datepicker" required name="starttime" /> <br /><br />
         <label>Адрес:</label><br />
         <input type="email" required name="email" /><br /><br />
         <input type="submit" value="Отправить" />
     </form>
-   
-
 
 
 </body>
+
 </html>
