@@ -1,0 +1,49 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@model IEnumerable<DBReport.Models.ReportInfo>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width-device-width" />
+    <title></title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function () {
+            $("#datepicker").datepicker({
+                dateFormat: "dd-mm-yy",
+                minDate: new Date(1996, 07, 04),
+                maxDate: new Date(1998, 05, 06),
+                defaultDate: new Date(1997, 07, 01)
+            });
+            $("#datepicker2").datepicker({
+                dateFormat: "dd-mm-yy",
+                minDate: new Date(1996, 07, 04),
+                maxDate: new Date(1998, 05, 06),
+                defaultDate: new Date(1997, 07, 01)
+            });
+        });
+    </script>
+</head>
+<body>   
+    <form method="post">
+        <h4>Выберите начальную и конечную даты выборки (04.07.1996 - 06.05.1998) и введите Ваш электронный адрес.</h4>
+        <label>Начало выборки:</label><br />
+        <input type="text" id="datepicker" required name="starttime" /> <br /><br />
+        <label>Конец выборки:</label><br />
+        <input type="text" id="datepicker2" required name="endtime" /> <br /><br />
+        <label>Адрес:</label><br />
+        <input type="email" required name="email" /><br /><br />
+        <input type="submit" value="Отправить" />
+    </form>
+</body>
+</html>

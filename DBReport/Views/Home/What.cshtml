@@ -1,0 +1,43 @@
+﻿@{
+    Layout = null;
+
+}
+@model IEnumerable<DBReport.Models.ReportInfo>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width-device-width" />
+    <title></title>
+    <script>
+        function nextUrl() {
+            location.href = "/Home/Index";
+        }
+    </script>
+</head>
+<body>   
+    <input type="button" value="Возврат" onclick="nextUrl()" />
+    <h4> Ваш отчёт по продажам (копия отправлена на указанный адрес электронной почты): </h4>
+    <table>
+        <tr>
+            <td>Номер заказа</td>
+            <td>Дата заказа</td>
+            <td>Артикул товара</td>
+            <td>Название товара</td>
+            <td>Кол-во реализованных единиц</td>
+            <td>Цена за единицу товара</td>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.OrderId</td>
+                <td>@item.Date.ToString("d")</td>
+                <td>@item.ProductType</td>
+                <td>@item.ProductName</td>
+                <td>@item.Quantity</td>
+                <td>@item.UnitPrice.ToString("0.00")</td>
+            </tr>
+        }
+    </table>
+    <input type="button" value="Возврат" onclick="nextUrl()" />
+</body>
+</html>

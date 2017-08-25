@@ -1,0 +1,11 @@
+{
+  "name": "asp.net",
+  "private": true,
+  "dependencies": {
+    "jquery-ui": "1.11.4",
+    "jquery": "2.2.3"
+  },
+  "resolutions": {
+    "jquery": ">=3.0.0"
+  }
+}
