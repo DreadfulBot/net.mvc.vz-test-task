@@ -52,7 +52,7 @@ namespace DBReport.Controllers
         }
 
         //Editing Excel file
-        private void AddingDataToExcel(string filename)
+        private void AddingDataToExcel(string filename, List<ReportInfo> Report)
         {
             using (SpreadsheetDocument currentDocument = SpreadsheetDocument.Open(filename, true))
             {
@@ -63,14 +63,43 @@ namespace DBReport.Controllers
                 // Retrieve a reference to the worksheet part.
                 WorksheetPart wsPart = (WorksheetPart)wbPart.GetPartById(firstsheet.Id);
                 //Документ пустой => существование строк не проверять
-                int currentvalue = 124;
                 Worksheet worksheet = wsPart.Worksheet;
                 SheetData sheetData = worksheet.GetFirstChild<SheetData>();
-                Row row = new Row() { RowIndex = 1 };
-                Cell theCell = new Cell() { CellReference="A1", DataType=CellValues.Number, CellValue=new CellValue(currentvalue.ToString())};
-                row.Append(theCell);
-                sheetData.Append(row);
 
+                Row row;
+                Cell theCell;
+
+                UInt32 i = 1;
+                row = new Row() { RowIndex = i };
+                List<string> cells = new List<string>() { "A", "B", "C", "D", "E", "F" };
+                List<string> titles = new List<string>() { "Номер заказа", "Дата заказа", "Артикул товара", "Название товара", "Кол-во реализованных единиц", "Цена за единицу товара" };
+                for (int j=0; j<6;j++)
+                {
+                    theCell = new Cell() { CellReference = cells[j]+i, DataType = CellValues.String, CellValue = new CellValue(titles[j]) };
+                    row.Append(theCell);
+                } 
+                sheetData.Append(row);
+                i++;
+
+                ///////////////////////
+                //  celltype[1] should be "Data" but..
+                ///////////////////////
+                List<CellValues> celltype = new List<CellValues>() { CellValues.Number, CellValues.String/*Date*/, CellValues.Number, CellValues.String, CellValues.Number, CellValues.Number };
+                List<string> cellvalue;
+                foreach(var currentrep in Report)
+                {
+                    row = new Row() { RowIndex = i };
+                    cellvalue = new List<string>() { currentrep.OrderId.ToString(), currentrep.Date.ToString("d"), currentrep.ProductType.ToString(), currentrep.ProductName, currentrep.Quantity.ToString(), currentrep.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) };
+                    for (int j = 0; j < 6; j++)
+                    {
+                        theCell = new Cell() { CellReference = cells[j]+i, DataType = celltype[j], CellValue = new CellValue(cellvalue[j]) };
+                        row.Append(theCell);
+                    }
+                   
+
+                    sheetData.Append(row);
+                    i++;                    
+                }
                 wsPart.Worksheet.Save();
             }
         }
@@ -109,44 +138,43 @@ namespace DBReport.Controllers
         }
 
         //SQL request
-        private void SQLRequest(DateTime starttime)
+        private List<ReportInfo> SQLRequest(DateTime starttime, DateTime endtime)
         {
             //Строка соединения
             string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Database=Northwind;Integrated Security=True";//or Initial Catalog
             //SQL-запрос         
-            string CommandText = "SELECT OrderID, OrderDate, CategoryID, Name, Quantity, OrderDetail.UnitPrice FROM Product, \"Order\", OrderDetail WHERE (\"Order\".ID=OrderDetail.OrderID) AND (OrderDetail.ProductID=Product.ID) AND (\"Order\".OrderDate>='" + starttime.Year + "." + starttime.Month + "." + starttime.Day + "')";
+            string CommandText = "SELECT OrderID, OrderDate, CategoryID, Name, Quantity, OrderDetail.UnitPrice FROM Product, \"Order\", OrderDetail WHERE (\"Order\".ID=OrderDetail.OrderID) AND (OrderDetail.ProductID=Product.ID) AND (\"Order\".OrderDate>='" + starttime.Year + "." + starttime.Month + "." + starttime.Day + "') AND (\"Order\".OrderDate<='" + endtime.Year + "." + endtime.Month + "." + endtime.Day + "')";
 
+            List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
             //Соединение с базой данных
             using (SqlConnection Northwind = new SqlConnection(connectionString))
             {
                 Northwind.Open();
                 SqlCommand ReportRequest = new SqlCommand(CommandText, Northwind);
                 SqlDataReader reader = ReportRequest.ExecuteReader();
-
                 if (reader.HasRows)//если есть данные
-                {
-                    List<ReportInfo> Report = new List<ReportInfo>();//Список с информацией
-                    //List<string> strings = new List<string>();
+                {              //List<string> strings = new List<string>();
                     while (reader.Read())
                     {
-                        Report.Add(new ReportInfo()
+                        /*string b = "";
+                        for (int i=0;i<6; i++)
                         {
-                            ProductId=reader.GetInt32(0),
+                            b += reader.GetFieldType(i).ToString()+" ";
+                        }*/
+                        Report.Add(new ReportInfo()
+                        {                            
+                            OrderId=reader.GetInt32(0),
                             Date=reader.GetDateTime(1),
                             ProductType=reader.GetInt32(2),
                             ProductName=reader.GetString(3),
-                            Quantity=reader.GetInt32(4),
+                            Quantity=reader.GetInt16(4),
                             UnitPrice=reader.GetDecimal(5)
-                        }   );
-                        //strings.Add(reader.GetString(0));
-                    }
-                    ViewBag.ReportData = Report;
+                        }   );          //strings.Add(reader.GetString(0));
+                    }            //ViewBag.ReportData = Report;
                 }
             }
-
+            return Report;
         }
-
-
 
         // GET: /<controller>/
         public IActionResult Index()
@@ -154,30 +182,25 @@ namespace DBReport.Controllers
             return View();
         }
         
-
-
-        public IActionResult What()
-        {
-            string filename = CreatingExcel();
-            AddingDataToExcel(filename);
-            return View();
-        }
-
-
         //ПРинимает интересующее количество дней
         [HttpPost]
-        public IActionResult Index(DateTime starttime, string email)
+        public IActionResult Index(DateTime starttime, DateTime endtime, string email)
         {
-            DateTime start = new DateTime(1996, 07, 04);
-            SQLRequest(starttime);
+            List<ReportInfo> Report = SQLRequest(starttime, endtime);
+            if(Report.Any())//не пустой
+            {
+                string filename = CreatingExcel();
+                AddingDataToExcel(filename, Report);                
+                SendEmail(email, filename);
+                System.IO.File.Delete(filename);
 
-            string filename = CreatingExcel();
-            AddingDataToExcel(filename);
-            SendEmail(email, filename);
-            System.IO.File.Delete(filename);
-          
-
-            return View("What");
+                return View("What", Report);
+            }
+            else
+            {
+                //здесь рыбы нет
+                return View("Empty");
+            }            
         }
     }
 }
